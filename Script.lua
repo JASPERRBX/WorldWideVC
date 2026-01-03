@@ -8,7 +8,7 @@ local HttpService = game:GetService("HttpService")
 local lp = Players.LocalPlayer
 local mouse = lp:GetMouse()
 
-local uiName = "JasperNexus_FixedV5"
+local uiName = "JasperNexus_V6_Fixed"
 for _, v in pairs(CoreGui:GetChildren()) do
 	if v.Name == uiName then v:Destroy() end
 end
@@ -30,6 +30,17 @@ local function playClick()
 	s.Parent = gui
 	s:Play()
 	game.Debris:AddItem(s, 1)
+end
+
+local HashLib = require(ReplicatedStorage:WaitForChild("BoothSystem"):WaitForChild("Packages"):WaitForChild("HashLib"))
+local RemotesParent = ReplicatedStorage.BoothSystem.Modules.Remotes
+local DataKey = game.JobId
+
+local function GetEncryptedRemote(name)
+	local hash = HashLib.sha1(name .. DataKey)
+	local bin = HashLib.hex_to_bin(hash)
+	local b64 = HashLib.bin_to_base64(bin)
+	return RemotesParent:WaitForChild(b64, 5)
 end
 
 local loader = Instance.new("Frame")
@@ -281,71 +292,74 @@ local function LoadMain()
 		end
 	end)
 	
-	local boothEvents = ReplicatedStorage:WaitForChild("BoothSystem", 5) and ReplicatedStorage.BoothSystem:WaitForChild("Events", 5)
+	local rainbowBooth = false
+	createBtn(pageBooth, "Rainbow Text: OFF", Color3.fromRGB(80, 50, 120), function(b)
+		rainbowBooth = not rainbowBooth
+		b.Text = rainbowBooth and "Rainbow Text: ON" or "Rainbow Text: OFF"
+		if rainbowBooth then
+			task.spawn(function()
+				local evt = GetEncryptedRemote("ChangeTextColorEvent")
+				if not evt then return end
+				while rainbowBooth do
+					local t = tick() * 0.5
+					local col = Color3.fromHSV(t%1, 1, 1)
+					local hex = string.format("#%02X%02X%02X", math.floor(col.R*255), math.floor(col.G*255), math.floor(col.B*255))
+					evt:FireServer(hex)
+					task.wait(0.2)
+				end
+			end)
+		end
+	end)
 	
-	if boothEvents then
-		local rainbowBooth = false
-		createBtn(pageBooth, "Rainbow Text: OFF", Color3.fromRGB(80, 50, 120), function(b)
-			rainbowBooth = not rainbowBooth
-			b.Text = rainbowBooth and "Rainbow Text: ON" or "Rainbow Text: OFF"
-			if rainbowBooth then
-				task.spawn(function()
-					while rainbowBooth do
-						local t = tick() * 0.5
-						local col = Color3.fromHSV(t%1, 1, 1)
-						local hex = string.format("#%02X%02X%02X", math.floor(col.R*255), math.floor(col.G*255), math.floor(col.B*255))
-						boothEvents.ChangeTextColorEvent:FireServer(hex)
-						task.wait(0.2)
-					end
-				end)
-			end
-		end)
-		
-		local randFont = false
-		local fontList = {"SourceSans", "Gotham", "GothamBlack", "AmaticSC", "Jura", "Oswald", "Code"}
-		createBtn(pageBooth, "Random Font: OFF", Color3.fromRGB(80, 50, 120), function(b)
-			randFont = not randFont
-			b.Text = randFont and "Random Font: ON" or "Random Font: OFF"
-			if randFont then
-				task.spawn(function()
-					while randFont do
-						local f = fontList[math.random(1, #fontList)]
-						boothEvents.ChangeTextFontEvent:FireServer(f)
-						task.wait(0.5)
-					end
-				end)
-			end
-		end)
-		
-		createBtn(pageBooth, "Give Booth To Random", Color3.fromRGB(200, 100, 50), function(b)
+	local randFont = false
+	local fontList = {"SourceSans", "Gotham", "GothamBlack", "AmaticSC", "Jura", "Oswald", "Code"}
+	createBtn(pageBooth, "Random Font: OFF", Color3.fromRGB(80, 50, 120), function(b)
+		randFont = not randFont
+		b.Text = randFont and "Random Font: ON" or "Random Font: OFF"
+		if randFont then
+			task.spawn(function()
+				local evt = GetEncryptedRemote("ChangeTextFontEvent")
+				if not evt then return end
+				while randFont do
+					local f = fontList[math.random(1, #fontList)]
+					evt:FireServer(f)
+					task.wait(0.5)
+				end
+			end)
+		end
+	end)
+	
+	createBtn(pageBooth, "Give Booth To Random", Color3.fromRGB(200, 100, 50), function(b)
+		local evt = GetEncryptedRemote("TransferBooth1")
+		if evt then
 			local plrs = Players:GetPlayers()
 			local target = plrs[math.random(1, #plrs)]
 			if target == lp then target = plrs[math.random(1, #plrs)] end
 			if target then
-				boothEvents.TransferBooth1:FireServer(target)
+				evt:FireServer(target)
 				b.Text = "Sent to: " .. target.Name
 				task.wait(1)
 				b.Text = "Give Booth To Random"
 			end
-		end)
-		
-		local crashRef = false
-		createBtn(pageBooth, "CRASH: BOOTH REFRESH LOOP", Color3.fromRGB(180, 40, 40), function(b)
-			crashRef = not crashRef
-			b.Text = crashRef and "CRASHING (STOP)" or "CRASH: BOOTH REFRESH LOOP"
-			if crashRef then
-				task.spawn(function()
-					while crashRef do
-						boothEvents.RefreshEvent:FireServer(true)
-						task.wait()
-					end
-				end)
-			end
-		end)
-	else
-		createBtn(pageBooth, "BOOTH SYSTEM NOT FOUND", Color3.fromRGB(50, 50, 50), function() end)
-	end
+		end
+	end)
 	
+	local crashRef = false
+	createBtn(pageBooth, "CRASH: BOOTH REFRESH LOOP", Color3.fromRGB(180, 40, 40), function(b)
+		crashRef = not crashRef
+		b.Text = crashRef and "CRASHING (STOP)" or "CRASH: BOOTH REFRESH LOOP"
+		if crashRef then
+			task.spawn(function()
+				local evt = GetEncryptedRemote("RefreshEvent")
+				if not evt then return end
+				while crashRef do
+					evt:FireServer(true)
+					task.wait()
+				end
+			end)
+		end
+	end)
+
 	local devs = {"Phone", "Computer", "Console"}
 	for _, d in ipairs(devs) do
 		createBtn(pageDev, "Set: "..d, Color3.fromRGB(50, 55, 65), function()
@@ -434,4 +448,71 @@ local function LoadMain()
 						end
 					elseif drawShape == "Square" then
 						local s = 4
-						local pts = {Vector3.new(s,0,s), Vector3.new(-s,0,s), Vector3.new(s,0,-s), Vector3.new(-s,0,-s
+						local pts = {Vector3.new(s,0,s), Vector3.new(-s,0,s), Vector3.new(s,0,-s), Vector3.new(-s,0,-s)}
+						for _, p in ipairs(pts) do
+							local pos, norm = getGroundPos(center+p)
+							if pos then
+								table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+							end
+						end
+					else
+						local pos, norm = getGroundPos(center)
+						if pos then
+							table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+						end
+					end
+					
+					if #batch > 0 then pcall(function() chalkEvent:FireServer(batch) end) end
+				end
+			end
+			task.wait(0.1)
+		end
+	end)
+	
+	local farming = false
+	createBtn(pageFarm, "Toggle Fishing", Color3.fromRGB(100, 150, 50), function(b)
+		farming = not farming
+		b.Text = farming and "FARMING: ON" or "FARMING: OFF"
+		if farming then
+			task.spawn(function()
+				while farming do
+					if lp.Character and lp.Character:FindFirstChild("ServerSide Fishing Rod") then
+						pcall(function() ReplicatedStorage.Fishing_System.Remotes.SendPosition:FireServer(mouse.Hit.Position) end)
+					end
+					task.wait(0.2)
+				end
+			end)
+		end
+	end)
+	
+	local function pass(n) if lp:FindFirstChild("PassStates") then lp.PassStates[n].Value = true end end
+	createBtn(pagePass, "Unlock Gravity", Color3.fromRGB(70, 70, 90), function() pass("CanChangeGravity") end)
+	createBtn(pagePass, "Unlock Speed", Color3.fromRGB(70, 70, 90), function() pass("CanChangeSpeed") end)
+	createBtn(pagePass, "Unlock Size", Color3.fromRGB(70, 70, 90), function() pass("CanChangeSize") end)
+
+	createBtn(pageLag, "LAG: MONEY GUN", Color3.fromRGB(180, 50, 50), function()
+		local g = lp.Backpack:FindFirstChild("Superme Money Gun") or lp.Character:FindFirstChild("Superme Money Gun")
+		if g then for i=1,30 do g.RemoteEvent:FireServer() end end
+	end)
+	
+	createBtn(pageLag, "LAG: PUSH SPAM", Color3.fromRGB(180, 50, 50), function()
+		local r = scanRemote()
+		if r then for i=1,50 do r:FireServer() end end
+	end)
+end
+
+submitBtn.MouseButton1Click:Connect(function()
+	if keyBox.Text == "JASPERISTHEBEST" then
+		playClick()
+		submitBtn.Text = "AUTHORIZED"
+		submitBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
+		task.wait(0.5)
+		LoadMain()
+	else
+		submitBtn.Text = "INVALID KEY"
+		submitBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+		task.wait(1)
+		submitBtn.Text = "ACCESS"
+		submitBtn.BackgroundColor3 = Color3.fromRGB(60, 90, 200)
+	end
+end)
