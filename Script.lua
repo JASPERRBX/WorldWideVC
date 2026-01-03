@@ -2,14 +2,13 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 local HttpService = game:GetService("HttpService")
 
 local lp = Players.LocalPlayer
 local mouse = lp:GetMouse()
 
-local uiName = "JasperNexus_FinalV4"
+local uiName = "JasperNexus_FixedV5"
 for _, v in pairs(CoreGui:GetChildren()) do
 	if v.Name == uiName then v:Destroy() end
 end
@@ -19,10 +18,11 @@ gui.Name = uiName
 gui.ResetOnSpawn = false
 gui.Parent = CoreGui
 gui.IgnoreGuiInset = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 local clickSound = Instance.new("Sound")
 clickSound.SoundId = "rbxassetid://9119713951"
-clickSound.Volume = 0.3
+clickSound.Volume = 0.5
 clickSound.Parent = gui
 
 local function playClick()
@@ -32,84 +32,86 @@ local function playClick()
 	game.Debris:AddItem(s, 1)
 end
 
-local function createGradient(parent, rot)
-	local g = Instance.new("UIGradient")
-	g.Color = ColorSequence.new{
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 20, 25)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 10, 15))
-	}
-	g.Rotation = rot or 45
-	g.Parent = parent
-	return g
-end
-
 local loader = Instance.new("Frame")
+loader.Name = "Loader"
 loader.Size = UDim2.new(1, 0, 1, 0)
-loader.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
+loader.BackgroundColor3 = Color3.fromRGB(10, 10, 12)
 loader.ZIndex = 100
 loader.Parent = gui
 
-local lGrad = createGradient(loader, -45)
+local lGrad = Instance.new("UIGradient")
 lGrad.Color = ColorSequence.new{
 	ColorSequenceKeypoint.new(0, Color3.fromRGB(15, 15, 20)),
-	ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 10))
+	ColorSequenceKeypoint.new(1, Color3.fromRGB(5, 5, 8))
 }
+lGrad.Rotation = -45
+lGrad.Parent = loader
 
 local keyContainer = Instance.new("Frame")
-keyContainer.Size = UDim2.new(0, 400, 0, 250)
-keyContainer.Position = UDim2.new(0.5, -200, 0.5, -125)
+keyContainer.Name = "KeyFrame"
+keyContainer.Size = UDim2.new(0, 420, 0, 260)
+keyContainer.AnchorPoint = Vector2.new(0.5, 0.5)
+keyContainer.Position = UDim2.new(0.5, 0, 0.5, 0)
 keyContainer.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
 keyContainer.BorderSizePixel = 0
+keyContainer.ZIndex = 101
 keyContainer.Parent = loader
 
 Instance.new("UICorner", keyContainer).CornerRadius = UDim.new(0, 12)
-Instance.new("UIStroke", keyContainer).Color = Color3.fromRGB(60, 60, 90)
+local kStroke = Instance.new("UIStroke")
+kStroke.Color = Color3.fromRGB(60, 60, 100)
+kStroke.Thickness = 2
+kStroke.Parent = keyContainer
 
 local keyTitle = Instance.new("TextLabel")
-keyTitle.Size = UDim2.new(1, 0, 0, 50)
-keyTitle.Position = UDim2.new(0, 0, 0.1, 0)
+keyTitle.Size = UDim2.new(1, 0, 0, 60)
+keyTitle.Position = UDim2.new(0, 0, 0.05, 0)
 keyTitle.BackgroundTransparency = 1
 keyTitle.Text = "SECURITY GATEWAY"
 keyTitle.Font = Enum.Font.GothamBlack
-keyTitle.TextSize = 24
-keyTitle.TextColor3 = Color3.fromRGB(100, 150, 255)
+keyTitle.TextSize = 26
+keyTitle.TextColor3 = Color3.fromRGB(110, 160, 255)
+keyTitle.ZIndex = 102
 keyTitle.Parent = keyContainer
 
 local keyBox = Instance.new("TextBox")
-keyBox.Size = UDim2.new(0.8, 0, 0, 50)
-keyBox.Position = UDim2.new(0.1, 0, 0.4, 0)
+keyBox.Size = UDim2.new(0.8, 0, 0, 55)
+keyBox.Position = UDim2.new(0.5, 0, 0.4, 0)
+keyBox.AnchorPoint = Vector2.new(0.5, 0.5)
 keyBox.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 keyBox.Text = ""
 keyBox.PlaceholderText = "Enter Key..."
 keyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+keyBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 100)
 keyBox.Font = Enum.Font.GothamBold
 keyBox.TextSize = 18
+keyBox.ZIndex = 102
 keyBox.Parent = keyContainer
 Instance.new("UICorner", keyBox).CornerRadius = UDim.new(0, 8)
 
 local submitBtn = Instance.new("TextButton")
-submitBtn.Size = UDim2.new(0.5, 0, 0, 40)
-submitBtn.Position = UDim2.new(0.25, 0, 0.7, 0)
-submitBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 180)
+submitBtn.Size = UDim2.new(0.5, 0, 0, 45)
+submitBtn.Position = UDim2.new(0.5, 0, 0.75, 0)
+submitBtn.AnchorPoint = Vector2.new(0.5, 0.5)
+submitBtn.BackgroundColor3 = Color3.fromRGB(60, 90, 200)
 submitBtn.Text = "ACCESS"
-submitBtn.Font = Enum.Font.GothamBold
+submitBtn.Font = Enum.Font.GothamBlack
 submitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 submitBtn.TextSize = 16
+submitBtn.ZIndex = 102
 submitBtn.Parent = keyContainer
 Instance.new("UICorner", submitBtn).CornerRadius = UDim.new(0, 8)
 
-local function toHex(color)
-	return string.format("#%02X%02X%02X", math.floor(color.R*255), math.floor(color.G*255), math.floor(color.B*255))
-end
-
 local function LoadMain()
-	local fadeInfo = TweenInfo.new(0.5)
-	TweenService:Create(loader, fadeInfo, {BackgroundTransparency = 1}):Play()
-	TweenService:Create(keyContainer, fadeInfo, {GroupTransparency = 1}):Play()
-	task.wait(0.5)
+	local tInfo = TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+	TweenService:Create(loader, tInfo, {BackgroundTransparency = 1}):Play()
+	TweenService:Create(keyContainer, tInfo, {Position = UDim2.new(0.5, 0, 1.5, 0)}):Play()
+	
+	task.wait(0.6)
 	loader:Destroy()
 	
 	local main = Instance.new("Frame")
+	main.Name = "MainFrame"
 	main.Size = UDim2.new(0, 0, 0, 0) 
 	main.Position = UDim2.new(0.5, 0, 0.5, 0)
 	main.BackgroundColor3 = Color3.fromRGB(18, 18, 22)
@@ -118,12 +120,18 @@ local function LoadMain()
 	main.AnchorPoint = Vector2.new(0.5, 0.5)
 	main.Parent = gui
 
-	createGradient(main, 45)
+	local mGrad = Instance.new("UIGradient")
+	mGrad.Color = ColorSequence.new{
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 25, 30)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 15, 20))
+	}
+	mGrad.Rotation = 45
+	mGrad.Parent = main
 	
-	TweenService:Create(main, TweenInfo.new(0.6, Enum.EasingStyle.Quart), {Size = UDim2.new(0, 650, 0, 420)}):Play()
+	TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 650, 0, 420)}):Play()
 	
 	local mStroke = Instance.new("UIStroke")
-	mStroke.Color = Color3.fromRGB(60, 60, 90)
+	mStroke.Color = Color3.fromRGB(70, 70, 100)
 	mStroke.Thickness = 1.5
 	mStroke.Parent = main
 	Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
@@ -135,14 +143,14 @@ local function LoadMain()
 	sidebar.Parent = main
 	Instance.new("UICorner", sidebar).CornerRadius = UDim.new(0, 12)
 	
-	local appTitle = Instance.new("TextLabel")
-	appTitle.Text = "JASPER"
-	appTitle.Font = Enum.Font.GothamBlack
-	appTitle.TextSize = 26
-	appTitle.TextColor3 = Color3.fromRGB(120, 160, 255)
-	appTitle.Size = UDim2.new(1, 0, 0, 60)
-	appTitle.BackgroundTransparency = 1
-	appTitle.Parent = sidebar
+	local title = Instance.new("TextLabel")
+	title.Text = "JASPER"
+	title.Font = Enum.Font.GothamBlack
+	title.TextSize = 26
+	title.TextColor3 = Color3.fromRGB(120, 160, 255)
+	title.Size = UDim2.new(1, 0, 0, 60)
+	title.BackgroundTransparency = 1
+	title.Parent = sidebar
 	
 	local dragging, dragStart, startPos
 	main.InputBegan:Connect(function(input)
@@ -188,8 +196,8 @@ local function LoadMain()
 		page.Parent = container
 		
 		local btn = Instance.new("TextButton")
-		btn.Size = UDim2.new(0.85, 0, 0, 36)
-		btn.Position = UDim2.new(0.075, 0, 0, 70 + (#tabs * 42))
+		btn.Size = UDim2.new(0.85, 0, 0, 38)
+		btn.Position = UDim2.new(0.075, 0, 0, 70 + (#tabs * 44))
 		btn.BackgroundColor3 = Color3.fromRGB(30, 30, 36)
 		btn.Text = name
 		btn.Font = Enum.Font.GothamBold
@@ -285,7 +293,7 @@ local function LoadMain()
 					while rainbowBooth do
 						local t = tick() * 0.5
 						local col = Color3.fromHSV(t%1, 1, 1)
-						local hex = toHex(col)
+						local hex = string.format("#%02X%02X%02X", math.floor(col.R*255), math.floor(col.G*255), math.floor(col.B*255))
 						boothEvents.ChangeTextColorEvent:FireServer(hex)
 						task.wait(0.2)
 					end
@@ -426,71 +434,4 @@ local function LoadMain()
 						end
 					elseif drawShape == "Square" then
 						local s = 4
-						local pts = {Vector3.new(s,0,s), Vector3.new(-s,0,s), Vector3.new(s,0,-s), Vector3.new(-s,0,-s)}
-						for _, p in ipairs(pts) do
-							local pos, norm = getGroundPos(center+p)
-							if pos then
-								table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
-							end
-						end
-					else
-						local pos, norm = getGroundPos(center)
-						if pos then
-							table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
-						end
-					end
-					
-					if #batch > 0 then pcall(function() chalkEvent:FireServer(batch) end) end
-				end
-			end
-			task.wait(0.1)
-		end
-	end)
-	
-	local farming = false
-	createBtn(pageFarm, "Toggle Fishing", Color3.fromRGB(100, 150, 50), function(b)
-		farming = not farming
-		b.Text = farming and "FARMING: ON" or "FARMING: OFF"
-		if farming then
-			task.spawn(function()
-				while farming do
-					if lp.Character and lp.Character:FindFirstChild("ServerSide Fishing Rod") then
-						pcall(function() ReplicatedStorage.Fishing_System.Remotes.SendPosition:FireServer(mouse.Hit.Position) end)
-					end
-					task.wait(0.2)
-				end
-			end)
-		end
-	end)
-	
-	local function pass(n) if lp:FindFirstChild("PassStates") then lp.PassStates[n].Value = true end end
-	createBtn(pagePass, "Unlock Gravity", Color3.fromRGB(70, 70, 90), function() pass("CanChangeGravity") end)
-	createBtn(pagePass, "Unlock Speed", Color3.fromRGB(70, 70, 90), function() pass("CanChangeSpeed") end)
-	createBtn(pagePass, "Unlock Size", Color3.fromRGB(70, 70, 90), function() pass("CanChangeSize") end)
-
-	createBtn(pageLag, "LAG: MONEY GUN", Color3.fromRGB(180, 50, 50), function()
-		local g = lp.Backpack:FindFirstChild("Superme Money Gun") or lp.Character:FindFirstChild("Superme Money Gun")
-		if g then for i=1,30 do g.RemoteEvent:FireServer() end end
-	end)
-	
-	createBtn(pageLag, "LAG: PUSH SPAM", Color3.fromRGB(180, 50, 50), function()
-		local r = scanRemote()
-		if r then for i=1,50 do r:FireServer() end end
-	end)
-end
-
-submitBtn.MouseButton1Click:Connect(function()
-	if keyBox.Text == "JASPERISTHEBEST" then
-		playClick()
-		submitBtn.Text = "AUTHORIZED"
-		submitBtn.BackgroundColor3 = Color3.fromRGB(50, 200, 100)
-		task.wait(0.5)
-		LoadMain()
-	else
-		submitBtn.Text = "INVALID KEY"
-		submitBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-		task.wait(1)
-		submitBtn.Text = "ACCESS"
-		submitBtn.BackgroundColor3 = Color3.fromRGB(60, 80, 180)
-	end
-end)
+						local pts = {Vector3.new(s,0,s), Vector3.new(-s,0,s), Vector3.new(s,0,-s), Vector3.new(-s,0,-s
