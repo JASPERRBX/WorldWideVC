@@ -113,8 +113,21 @@ local function GetEncryptedRemote(name)
 end
 
 local function scanRemote(name)
-	local r = ReplicatedStorage:FindFirstChild(name, true) or workspace:FindFirstChild(name, true)
-	if r and r:IsA("RemoteEvent") then return r end
+	-- Список мест, где будем искать (включая ReplicatedStorage, так как там чаще всего лежат ремуты)
+	local targets = {
+		game:GetService("ReplicatedStorage"),
+		workspace,
+		game:GetService("Players")
+	}
+
+	for _, service in ipairs(targets) do
+		-- GetDescendants возвращает ВСЕ вложенные объекты (детей, детей детей и т.д.)
+		for _, v in ipairs(service:GetDescendants()) do
+			if v.Name == name and v:IsA("RemoteEvent") then
+				return v
+			end
+		end
+	end
 	return nil
 end
 
