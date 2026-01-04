@@ -2,13 +2,15 @@ local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
-local HttpService = game:GetService("HttpService")
 
 local lp = Players.LocalPlayer
 local mouse = lp:GetMouse()
+local cam = workspace.CurrentCamera
 
-local uiName = "JasperNexus_V6_Fixed"
+local uiName = "JasperNexus"
+
 for _, v in pairs(CoreGui:GetChildren()) do
 	if v.Name == uiName then v:Destroy() end
 end
@@ -258,6 +260,21 @@ local function LoadMain()
 		return b
 	end
 	
+	local function createInput(parent, ph, def)
+		local b = Instance.new("TextBox")
+		b.Size = UDim2.new(0.98, 0, 0, 40)
+		b.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+		b.Text = def
+		b.PlaceholderText = ph
+		b.Font = Enum.Font.GothamBold
+		b.TextColor3 = Color3.new(1,1,1)
+		b.PlaceholderColor3 = Color3.fromRGB(150,150,150)
+		b.TextSize = 14
+		b.Parent = parent
+		Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
+		return b
+	end
+	
 	local pageMain = createTab("Main")
 	local pageBooth = createTab("Booth")
 	local pageDev = createTab("Devices")
@@ -291,8 +308,51 @@ local function LoadMain()
 			b.Text = "GET FREE PUSH"
 		end
 	end)
+
+	local cflySpeedInput = createInput(pageMain, "CFrame Fly Speed", "50")
+	local cfLoop = nil
+	createBtn(pageMain, "Toggle CFrame Fly (Out of Bounds)", Color3.fromRGB(150, 50, 150), function(b)
+		if cfLoop then
+			cfLoop:Disconnect()
+			cfLoop = nil
+			if lp.Character and lp.Character:FindFirstChild("Humanoid") then
+				lp.Character.Humanoid.PlatformStand = false
+			end
+			if lp.Character and lp.Character:FindFirstChild("Head") then
+				lp.Character.Head.Anchored = false
+			end
+			b.Text = "Toggle CFrame Fly (OFF)"
+			b.BackgroundColor3 = Color3.fromRGB(150, 50, 150)
+		else
+			if not lp.Character or not lp.Character:FindFirstChild("Humanoid") then return end
+			b.Text = "Toggle CFrame Fly (ON)"
+			b.BackgroundColor3 = Color3.fromRGB(200, 50, 200)
+			
+			local hum = lp.Character.Humanoid
+			local head = lp.Character:WaitForChild("Head")
+			hum.PlatformStand = true
+			head.Anchored = true
+			
+			cfLoop = RunService.Heartbeat:Connect(function(dt)
+				local spd = tonumber(cflySpeedInput.Text) or 50
+				local moveDir = hum.MoveDirection * (spd * dt)
+				local headCF = head.CFrame
+				local camCF = cam.CFrame
+				
+				local camOffset = headCF:ToObjectSpace(camCF).Position
+				camCF = camCF * CFrame.new(-camOffset.X, -camOffset.Y, -camOffset.Z + 1)
+				local camPos = camCF.Position
+				local headPos = headCF.Position
+				
+				local objSpaceVel = CFrame.new(camPos, Vector3.new(headPos.X, camPos.Y, headPos.Z)):VectorToObjectSpace(moveDir)
+				head.CFrame = CFrame.new(headPos) * (camCF - camPos) * CFrame.new(objSpaceVel)
+			end)
+		end
+	end)
 	
 	local rainbowBooth = false
+	local colorSpeedInput = createInput(pageBooth, "Color Speed (0.2)", "0.2")
+	
 	createBtn(pageBooth, "Rainbow Text: OFF", Color3.fromRGB(80, 50, 120), function(b)
 		rainbowBooth = not rainbowBooth
 		b.Text = rainbowBooth and "Rainbow Text: ON" or "Rainbow Text: OFF"
@@ -301,18 +361,21 @@ local function LoadMain()
 				local evt = GetEncryptedRemote("ChangeTextColorEvent")
 				if not evt then return end
 				while rainbowBooth do
-					local t = tick() * 0.5
+					local spd = tonumber(colorSpeedInput.Text) or 0.2
+					local t = tick() * (1/spd) * 0.1
 					local col = Color3.fromHSV(t%1, 1, 1)
 					local hex = string.format("#%02X%02X%02X", math.floor(col.R*255), math.floor(col.G*255), math.floor(col.B*255))
 					evt:FireServer(hex)
-					task.wait(0.2)
+					task.wait(spd)
 				end
 			end)
 		end
 	end)
 	
 	local randFont = false
+	local fontSpeedInput = createInput(pageBooth, "Font Speed (0.5)", "0.5")
 	local fontList = {"SourceSans", "Gotham", "GothamBlack", "AmaticSC", "Jura", "Oswald", "Code"}
+	
 	createBtn(pageBooth, "Random Font: OFF", Color3.fromRGB(80, 50, 120), function(b)
 		randFont = not randFont
 		b.Text = randFont and "Random Font: ON" or "Random Font: OFF"
@@ -321,9 +384,10 @@ local function LoadMain()
 				local evt = GetEncryptedRemote("ChangeTextFontEvent")
 				if not evt then return end
 				while randFont do
+					local spd = tonumber(fontSpeedInput.Text) or 0.5
 					local f = fontList[math.random(1, #fontList)]
 					evt:FireServer(f)
-					task.wait(0.5)
+					task.wait(spd)
 				end
 			end)
 		end
@@ -372,6 +436,46 @@ local function LoadMain()
 	local isRainbow = false
 	local isDrawing = false
 	local chalkEvent = ReplicatedStorage:WaitForChild("GameCore"):WaitForChild("Remotes"):WaitForChild("ChalkEvent")
+	
+	local function P(x, z) return {x, z} end
+	local FONT_LINES = {}
+	FONT_LINES['A'] = { {P(0,0),P(1,4)}, {P(1,4),P(2,0)}, {P(0.4,1.6),P(1.6,1.6)} }
+	FONT_LINES['B'] = { {P(0,0),P(0,4)}, {P(0,4),P(1.5,3.5)}, {P(1.5,3.5),P(0,2)}, {P(0,2),P(1.8,1.5)}, {P(1.8,1.5),P(0,0)} }
+	FONT_LINES['C'] = { {P(2,3.5),P(1,4)}, {P(1,4),P(0.2,3)}, {P(0.2,3),P(0.2,1)}, {P(0.2,1),P(1,0)}, {P(1,0),P(2,0.5)} }
+	FONT_LINES['D'] = { {P(0,0),P(0,4)}, {P(0,4),P(1,4)}, {P(1,4),P(2,2)}, {P(2,2),P(1,0)}, {P(1,0),P(0,0)} }
+	FONT_LINES['E'] = { {P(0,0),P(0,4)}, {P(0,4),P(2,4)}, {P(0,2),P(1.5,2)}, {P(0,0),P(2,0)} }
+	FONT_LINES['F'] = { {P(0,0),P(0,4)}, {P(0,4),P(2,4)}, {P(0,2),P(1.5,2)} }
+	FONT_LINES['G'] = { {P(2,3),P(1,4)}, {P(1,4),P(0.2,3)}, {P(0.2,3),P(0.2,1)}, {P(0.2,1),P(1,0)}, {P(1,0),P(2,0)}, {P(2,0),P(2,2)}, {P(2,2),P(1.2,2)} }
+	FONT_LINES['H'] = { {P(0,0),P(0,4)}, {P(2,0),P(2,4)}, {P(0,2),P(2,2)} }
+	FONT_LINES['I'] = { {P(1,0),P(1,4)}, {P(0,0),P(2,0)}, {P(0,4),P(2,4)} }
+	FONT_LINES['J'] = { {P(0,1),P(1,0)}, {P(1,0),P(1.8,0.5)}, {P(1.8,0.5),P(1.8,4)} }
+	FONT_LINES['K'] = { {P(0,0),P(0,4)}, {P(0,2),P(2,4)}, {P(0,2),P(2,0)} }
+	FONT_LINES['L'] = { {P(0,4),P(0,0)}, {P(0,0),P(2,0)} }
+	FONT_LINES['M'] = { {P(0,0),P(0,4)}, {P(0,4),P(1.2,2)}, {P(1.2,2),P(2.4,4)}, {P(2.4,4),P(2.4,0)} } 
+	FONT_LINES['N'] = { {P(0,0),P(0,4)}, {P(0,4),P(2,0)}, {P(2,0),P(2,4)} }
+	FONT_LINES['O'] = { {P(1,4),P(0.2,3)}, {P(0.2,3),P(0.2,1)}, {P(0.2,1),P(1,0)}, {P(1,0),P(1.8,1)}, {P(1.8,1),P(1.8,3)}, {P(1.8,3),P(1,4)} }
+	FONT_LINES['P'] = { {P(0,0),P(0,4)}, {P(0,4),P(1.5,4)}, {P(1.5,4),P(2,3)}, {P(2,3),P(1.5,2)}, {P(1.5,2),P(0,2)} }
+	FONT_LINES['Q'] = { {P(1,4),P(0.2,3)}, {P(0.2,3),P(0.2,1)}, {P(0.2,1),P(1,0)}, {P(1,0),P(1.8,1)}, {P(1.8,1),P(1.8,3)}, {P(1.8,3),P(1,4)}, {P(1.2,1),P(2,0)} }
+	FONT_LINES['R'] = { {P(0,0),P(0,4)}, {P(0,4),P(1.5,4)}, {P(1.5,4),P(2,3)}, {P(2,3),P(1.5,2)}, {P(1.5,2),P(0,2)}, {P(1.2,2),P(2,0)} }
+	FONT_LINES['S'] = { {P(2,3.5),P(1,4)}, {P(1,4),P(0,3.5)}, {P(0,3.5),P(2,1)}, {P(2,1),P(1,0)}, {P(1,0),P(0,0.5)} }
+	FONT_LINES['T'] = { {P(1,0),P(1,4)}, {P(0,4),P(2,4)} }
+	FONT_LINES['U'] = { {P(0,4),P(0,1)}, {P(0,1),P(1,0)}, {P(1,0),P(1.8,1)}, {P(1.8,1),P(1.8,4)} }
+	FONT_LINES['V'] = { {P(0,4),P(1,0)}, {P(1,0),P(2,4)} }
+	FONT_LINES['W'] = { {P(0,4),P(0.6,0)}, {P(0.6,0),P(1.5,2)}, {P(1.5,2),P(2.4,0)}, {P(2.4,0),P(3,4)} }
+	FONT_LINES['X'] = { {P(0,0),P(2,4)}, {P(0,4),P(2,0)} }
+	FONT_LINES['Y'] = { {P(1,0),P(1,2)}, {P(1,2),P(0,4)}, {P(1,2),P(2,4)} }
+	FONT_LINES['Z'] = { {P(0,4),P(2,4)}, {P(2,4),P(0,0)}, {P(0,0),P(2,0)} }
+	FONT_LINES['1'] = { {P(1,0),P(1,4)}, {P(1,4),P(0.3,3)} }
+	FONT_LINES['2'] = { {P(0,3.2),P(1,4)}, {P(1,4),P(1.8,3.2)}, {P(1.8,3.2),P(0,0)}, {P(0,0),P(2,0)} }
+	FONT_LINES['3'] = { {P(0,3.2),P(1,4)}, {P(1,4),P(1.8,3.2)}, {P(1.8,3.2),P(0.8,2)}, {P(0.8,2),P(1.8,0.8)}, {P(1.8,0.8),P(1,0)}, {P(1,0),P(0,0.8)} }
+	FONT_LINES['4'] = { {P(1.5,0),P(1.5,4)}, {P(1.5,4),P(0,1)}, {P(0,1),P(2,1)} }
+	FONT_LINES['5'] = { {P(1.8,4),P(0,4)}, {P(0,4),P(0,2.3)}, {P(0,2.3),P(1.5,2.5)}, {P(1.5,2.5),P(1.8,1.5)}, {P(1.8,1.5),P(1.8,0.8)}, {P(1.8,0.8),P(1,0)}, {P(1,0),P(0,0.5)} }
+	FONT_LINES['6'] = { {P(1.5,3.5),P(0.5,2)}, {P(0.5,2),P(1.8,2)}, {P(1.8,2),P(1.8,0.8)}, {P(1.8,0.8),P(1,0)}, {P(1,0),P(0.2,1)}, {P(0.2,1),P(0.2,2.5)}, {P(0.2,2.5),P(1,4)} }
+	FONT_LINES['7'] = { {P(0,4),P(2,4)}, {P(2,4),P(0.5,0)} }
+	FONT_LINES['8'] = { {P(1,2),P(0.2,1)}, {P(0.2,1),P(1,0)}, {P(1,0),P(1.8,1)}, {P(1.8,1),P(1,2)}, {P(1,2),P(1.8,3)}, {P(1.8,3),P(1,4)}, {P(1,4),P(0.2,3)}, {P(0.2,3),P(1,2)} }
+	FONT_LINES['9'] = { {P(0.2,0.5),P(1.5,2)}, {P(1.5,2),P(0.2,2)}, {P(0.2,2),P(0.2,3.2)}, {P(0.2,3.2),P(1,4)}, {P(1,4),P(1.8,3)}, {P(1.8,3),P(1.8,1.5)}, {P(1.8,1.5),P(1,0)} }
+	FONT_LINES['0'] = { {P(1,0),P(0.2,1)}, {P(0.2,1),P(0.2,3)}, {P(0.2,3),P(1,4)}, {P(1,4),P(1.8,3)}, {P(1.8,3),P(1.8,1)}, {P(1.8,1),P(1,0)} }
+	FONT_LINES[' '] = {}
 
 	local palette = Instance.new("Frame", pageDraw)
 	palette.Size = UDim2.new(1, 0, 0, 80)
@@ -397,17 +501,19 @@ local function LoadMain()
 	
 	local function sBtn(n)
 		local b = Instance.new("TextButton", shapeFrame)
-		b.Size = UDim2.new(0.3, 0, 1, 0)
+		b.Size = UDim2.new(0.24, 0, 1, 0)
 		b.BackgroundColor3 = Color3.fromRGB(40,40,50)
 		b.Text = n
 		b.TextColor3 = Color3.new(1,1,1)
 		b.Font = Enum.Font.Gotham
+		b.TextSize = 12
 		Instance.new("UICorner", b).CornerRadius = UDim.new(0, 4)
 		b.MouseButton1Click:Connect(function() drawShape = n playClick() end)
 	end
 	sBtn("Circle")
 	sBtn("Square")
 	sBtn("Dot")
+	sBtn("Text")
 	
 	createBtn(pageDraw, "Rainbow Mode: OFF", Color3.fromRGB(80, 50, 120), function(b)
 		isRainbow = not isRainbow
@@ -419,6 +525,10 @@ local function LoadMain()
 		b.BackgroundColor3 = isDrawing and Color3.fromRGB(50, 150, 80) or Color3.fromRGB(150, 50, 50)
 	end)
 	
+	local textWordInput = createInput(pageDraw, "Word Input (A-Z, 0-9)", "JASPER")
+	local textSizeInput = createInput(pageDraw, "Text Size (1-5)", "2")
+	local textSpacingInput = createInput(pageDraw, "Text Spacing (Default: 2.5)", "2.5")
+
 	local function getGroundPos(startPos)
 		local params = RaycastParams.new()
 		params.FilterDescendantsInstances = {lp.Character, workspace:FindFirstChild("Art")}
@@ -427,42 +537,151 @@ local function LoadMain()
 		if res then return res.Position + Vector3.new(0, 0.1, 0), res.Normal end
 		return nil, nil
 	end
-	
+
+	local function interpolateLine(Batch, startRelPos, endRelPos, centerFrame, col, size)
+		local spacing = 0.15 * size 
+		local dist = (startRelPos - endRelPos).Magnitude
+		local segments = math.max(1, math.ceil(dist / spacing))
+		
+		for i = 0, segments do
+			local t = i / segments
+			local lerpedRel = startRelPos:Lerp(endRelPos, t)
+			local raw_pos = centerFrame * lerpedRel
+			
+			local pos, norm = getGroundPos(raw_pos)
+			if pos then
+				table.insert(Batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+			end
+		end
+	end
+
+	local function safeDraw(batch)
+		local MAX_POINTS = 1800 
+		if #batch <= MAX_POINTS then
+			pcall(function() chalkEvent:FireServer(batch) end)
+		else
+			task.spawn(function()
+				for i = 1, #batch, MAX_POINTS do
+					local subBatch = {}
+					for j = i, math.min(i + MAX_POINTS - 1, #batch) do
+						table.insert(subBatch, batch[j])
+					end
+					pcall(function() chalkEvent:FireServer(subBatch) end)
+					task.wait(0.1)
+				end
+			end)
+		end
+	end
+
+	createBtn(pageDraw, "DRAW WORD (Centered Lines)", Color3.fromRGB(0, 160, 80), function(b)
+		if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return end
+		if not lp.Character:FindFirstChildOfClass("Tool") then b.Text = "HOLD TOOL FIRST"; task.wait(1); b.Text = "DRAW WORD (Centered Lines)"; return end
+		
+		b.Text = "CALCULATING..."
+		local word = textWordInput.Text:upper()
+		local size = tonumber(textSizeInput.Text) or 2
+		local spaceMult = tonumber(textSpacingInput.Text) or 2.5
+		size = math.clamp(size, 0.1, 5)
+		
+		local masterBatch = {}
+		local root = lp.Character.HumanoidRootPart
+		
+		local charSpacing = spaceMult * size
+		local totalWidth = (#word * charSpacing)
+		local startOffset = -totalWidth / 2
+		
+		local centerFrame = root.CFrame * CFrame.new(0, 0, -12)
+		local pointDensitySpacing = 0.5 * size
+
+		for charIdx = 1, #word do
+			local char = word:sub(charIdx, charIdx)
+			local lineStrokes = FONT_LINES[char] or FONT_LINES[' ']
+			local charRainbowCol = isRainbow and Color3.fromHSV((tick()%1 + charIdx/#word)%1, 1, 1) or drawColor
+
+			for _, stroke in ipairs(lineStrokes) do
+				local startP = stroke[1]
+				local endP = stroke[2]
+				
+				local startRel = Vector3.new(startP[1] * pointDensitySpacing, 0, startP[2] * pointDensitySpacing)
+				local endRel = Vector3.new(endP[1] * pointDensitySpacing, 0, endP[2] * pointDensitySpacing)
+				
+				local offsetCharX = startOffset + ((charIdx - 1) * charSpacing)
+				local finalStartRel = Vector3.new(offsetCharX + startRel.X, 0, -startRel.Z)
+				local finalEndRel = Vector3.new(offsetCharX + endRel.X, 0, -endRel.Z)
+				
+				interpolateLine(masterBatch, finalStartRel, finalEndRel, centerFrame, charRainbowCol, size)
+			end
+		end
+		
+		if #masterBatch > 0 then
+			b.Text = "SENDING ( V10 )..."
+			safeDraw(masterBatch)
+		end
+		
+		task.wait(masterBatch > 1800 and 0.5 or 0.2)
+		b.Text = "DRAW WORD (Centered Lines)"
+	end)
+
 	task.spawn(function()
 		while true do
-			if isDrawing and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+			if isDrawing and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) and drawShape ~= "Text" then
 				local char = lp.Character
 				if char then
-					local batch = {}
-					local center = mouse.Hit.Position
-					local col = isRainbow and Color3.fromHSV(tick()%1, 1, 1) or drawColor
-					
-					if drawShape == "Circle" then
-						for i = 1, 20 do
-							local ang = (i/20) * math.pi * 2
-							local raw = center + Vector3.new(math.cos(ang)*4, 0, math.sin(ang)*4)
-							local pos, norm = getGroundPos(raw)
-							if pos then
-								table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+					local tool = char:FindFirstChildOfClass("Tool")
+					if tool then
+						local batch = {}
+						local center = mouse.Hit.Position
+						local col = isRainbow and Color3.fromHSV(tick()%1, 1, 1) or drawColor
+						
+						if drawShape == "Circle" then
+							local segments = 40
+							for i = 1, segments do
+								local ang = (i/segments) * math.pi * 2
+								local raw = center + Vector3.new(math.cos(ang)*4, 0, math.sin(ang)*4)
+								local pos, norm = getGroundPos(raw)
+								if pos then
+									table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+								end
+							end
+						elseif drawShape == "Square" then
+							local s = 4
+							local pointsPerSide = 10
+							local spacing = (s*2) / pointsPerSide
+							for i = 0, pointsPerSide do
+								local raw = center + Vector3.new( -s + i*spacing, 0, s )
+								local pos, norm = getGroundPos(raw)
+								if pos then table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col}) end
+							end
+							for i = 0, pointsPerSide do
+								local raw = center + Vector3.new( s, 0, s - i*spacing )
+								local pos, norm = getGroundPos(raw)
+								if pos then table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col}) end
+							end
+							for i = 0, pointsPerSide do
+								local raw = center + Vector3.new( s - i*spacing, 0, -s )
+								local pos, norm = getGroundPos(raw)
+								if pos then table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col}) end
+							end
+							for i = 0, pointsPerSide do
+								local raw = center + Vector3.new( -s, 0, -s + i*spacing )
+								local pos, norm = getGroundPos(raw)
+								if pos then table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col}) end
+							end
+						else
+							local density = 3
+							for x=0, density do
+								for z=0, density do
+									local off = Vector3.new(x*0.1, 0, z*0.1)
+									local pos, norm = getGroundPos(center+off)
+									if pos then
+										table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
+									end
+								end
 							end
 						end
-					elseif drawShape == "Square" then
-						local s = 4
-						local pts = {Vector3.new(s,0,s), Vector3.new(-s,0,s), Vector3.new(s,0,-s), Vector3.new(-s,0,-s)}
-						for _, p in ipairs(pts) do
-							local pos, norm = getGroundPos(center+p)
-							if pos then
-								table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
-							end
-						end
-					else
-						local pos, norm = getGroundPos(center)
-						if pos then
-							table.insert(batch, {cframe = CFrame.lookAt(pos, pos+norm)*CFrame.Angles(0, math.rad(90), 0), color = col})
-						end
+						
+						if #batch > 0 then pcall(function() chalkEvent:FireServer(batch) end) end
 					end
-					
-					if #batch > 0 then pcall(function() chalkEvent:FireServer(batch) end) end
 				end
 			end
 			task.wait(0.1)
