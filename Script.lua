@@ -21,7 +21,7 @@ for _, v in pairs(CoreGui:GetChildren()) do
 	if v.Name == uiName then v:Destroy() end
 end
 
---// THEME SYSTEM //--
+--// THEMES //--
 local themes = {
 	["Jasper Dark"] = {
 		Main = Color3.fromRGB(18, 18, 24),
@@ -118,6 +118,106 @@ local function scanRemote(name)
 	return nil
 end
 
+--// FONT SYSTEM (CYRILLIC + SYMBOLS SUPPORT) //--
+local function P(x, z) return {x, z} end
+local FONT_LINES = {}
+
+-- English & Numbers
+FONT_LINES['A']={{P(0,0),P(1,4)},{P(1,4),P(2,0)},{P(0.4,1.6),P(1.6,1.6)}}
+FONT_LINES['B']={{P(0,0),P(0,4)},{P(0,4),P(1.5,3.5)},{P(1.5,3.5),P(0,2)},{P(0,2),P(1.8,1.5)},{P(1.8,1.5),P(0,0)}}
+FONT_LINES['C']={{P(2,3.5),P(1,4)},{P(1,4),P(0.2,3)},{P(0.2,3),P(0.2,1)},{P(0.2,1),P(1,0)},{P(1,0),P(2,0.5)}}
+FONT_LINES['D']={{P(0,0),P(0,4)},{P(0,4),P(1,4)},{P(1,4),P(2,2)},{P(2,2),P(1,0)},{P(1,0),P(0,0)}}
+FONT_LINES['E']={{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(0,2),P(1.5,2)},{P(0,0),P(2,0)}}
+FONT_LINES['F']={{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(0,2),P(1.5,2)}}
+FONT_LINES['G']={{P(2,3),P(1,4)},{P(1,4),P(0.2,3)},{P(0.2,3),P(0.2,1)},{P(0.2,1),P(1,0)},{P(1,0),P(2,0)},{P(2,0),P(2,2)},{P(2,2),P(1.2,2)}}
+FONT_LINES['H']={{P(0,0),P(0,4)},{P(2,0),P(2,4)},{P(0,2),P(2,2)}}
+FONT_LINES['I']={{P(1,0),P(1,4)},{P(0,0),P(2,0)},{P(0,4),P(2,4)}}
+FONT_LINES['J']={{P(0,1),P(1,0)},{P(1,0),P(1.8,0.5)},{P(1.8,0.5),P(1.8,4)}}
+FONT_LINES['K']={{P(0,0),P(0,4)},{P(0,2),P(2,4)},{P(0,2),P(2,0)}}
+FONT_LINES['L']={{P(0,4),P(0,0)},{P(0,0),P(2,0)}}
+FONT_LINES['M']={{P(0,0),P(0,4)},{P(0,4),P(1.2,2)},{P(1.2,2),P(2.4,4)},{P(2.4,4),P(2.4,0)}}
+FONT_LINES['N']={{P(0,0),P(0,4)},{P(0,4),P(2,0)},{P(2,0),P(2,4)}}
+FONT_LINES['O']={{P(1,4),P(0.2,3)},{P(0.2,3),P(0.2,1)},{P(0.2,1),P(1,0)},{P(1,0),P(1.8,1)},{P(1.8,1),P(1.8,3)},{P(1.8,3),P(1,4)}}
+FONT_LINES['P']={{P(0,0),P(0,4)},{P(0,4),P(1.5,4)},{P(1.5,4),P(2,3)},{P(2,3),P(1.5,2)},{P(1.5,2),P(0,2)}}
+FONT_LINES['Q']={{P(1,4),P(0.2,3)},{P(0.2,3),P(0.2,1)},{P(0.2,1),P(1,0)},{P(1,0),P(1.8,1)},{P(1.8,1),P(1.8,3)},{P(1.8,3),P(1,4)},{P(1.2,1),P(2,0)}}
+FONT_LINES['R']={{P(0,0),P(0,4)},{P(0,4),P(1.5,4)},{P(1.5,4),P(2,3)},{P(2,3),P(1.5,2)},{P(1.5,2),P(0,2)},{P(1.2,2),P(2,0)}}
+FONT_LINES['S']={{P(2,3.5),P(1,4)},{P(1,4),P(0,3.5)},{P(0,3.5),P(2,1)},{P(2,1),P(1,0)},{P(1,0),P(0,0.5)}}
+FONT_LINES['T']={{P(1,0),P(1,4)},{P(0,4),P(2,4)}}
+FONT_LINES['U']={{P(0,4),P(0,1)},{P(0,1),P(1,0)},{P(1,0),P(1.8,1)},{P(1.8,1),P(1.8,4)}}
+FONT_LINES['V']={{P(0,4),P(1,0)},{P(1,0),P(2,4)}}
+FONT_LINES['W']={{P(0,4),P(0.6,0)},{P(0.6,0),P(1.5,2)},{P(1.5,2),P(2.4,0)},{P(2.4,0),P(3,4)}}
+FONT_LINES['X']={{P(0,0),P(2,4)},{P(0,4),P(2,0)}}
+FONT_LINES['Y']={{P(1,0),P(1,2)},{P(1,2),P(0,4)},{P(1,2),P(2,4)}}
+FONT_LINES['Z']={{P(0,4),P(2,4)},{P(2,4),P(0,0)},{P(0,0),P(2,0)}}
+FONT_LINES['1']={{P(1,0),P(1,4)},{P(1,4),P(0.3,3)}}
+FONT_LINES['2']={{P(0,3.2),P(1,4)},{P(1,4),P(1.8,3.2)},{P(1.8,3.2),P(0,0)},{P(0,0),P(2,0)}}
+FONT_LINES['3']={{P(0,3.2),P(1,4)},{P(1,4),P(1.8,3.2)},{P(1.8,3.2),P(0.8,2)},{P(0.8,2),P(1.8,0.8)},{P(1.8,0.8),P(1,0)},{P(1,0),P(0,0.8)}}
+FONT_LINES['4']={{P(1.5,0),P(1.5,4)},{P(1.5,4),P(0,1)},{P(0,1),P(2,1)}}
+FONT_LINES['5']={{P(1.8,4),P(0,4)},{P(0,4),P(0,2.3)},{P(0,2.3),P(1.5,2.5)},{P(1.5,2.5),P(1.8,1.5)},{P(1.8,1.5),P(1.8,0.8)},{P(1.8,0.8),P(1,0)},{P(1,0),P(0,0.5)}}
+FONT_LINES['6']={{P(1.5,3.5),P(0.5,2)},{P(0.5,2),P(1.8,2)},{P(1.8,2),P(1.8,0.8)},{P(1.8,0.8),P(1,0)},{P(1,0),P(0.2,1)},{P(0.2,1),P(0.2,2.5)},{P(0.2,2.5),P(1,4)}}
+FONT_LINES['7']={{P(0,4),P(2,4)},{P(2,4),P(0.5,0)}}
+FONT_LINES['8']={{P(1,2),P(0.2,1)},{P(0.2,1),P(1,0)},{P(1,0),P(1.8,1)},{P(1.8,1),P(1,2)},{P(1,2),P(1.8,3)},{P(1.8,3),P(1,4)},{P(1,4),P(0.2,3)},{P(0.2,3),P(1,2)}}
+FONT_LINES['9']={{P(0.2,0.5),P(1.5,2)},{P(1.5,2),P(0.2,2)},{P(0.2,2),P(0.2,3.2)},{P(0.2,3.2),P(1,4)},{P(1,4),P(1.8,3)},{P(1.8,3),P(1.8,1.5)},{P(1.8,1.5),P(1,0)}}
+FONT_LINES['0']={{P(1,0),P(0.2,1)},{P(0.2,1),P(0.2,3)},{P(0.2,3),P(1,4)},{P(1,4),P(1.8,3)},{P(1.8,3),P(1.8,1)},{P(1.8,1),P(1,0)}}
+FONT_LINES[' ']={}
+
+-- Symbols
+FONT_LINES['.']={{P(1,0),P(1.2,0)}}
+FONT_LINES[',']={{P(1.2,1),P(1,0)}}
+FONT_LINES['-']={{P(0.2,2),P(1.8,2)}}
+FONT_LINES['+']={{P(0.2,2),P(1.8,2)},{P(1,1),P(1,3)}}
+FONT_LINES['=']={{P(0.2,1.5),P(1.8,1.5)},{P(0.2,2.5),P(1.8,2.5)}}
+FONT_LINES['!']={{P(1,4),P(1,1)},{P(1,0.5),P(1,0)}}
+FONT_LINES['?']={{P(0,3),P(1,4)},{P(1,4),P(2,3)},{P(2,3),P(1,2)},{P(1,2),P(1,1.5)},{P(1,0.5),P(1,0)}}
+FONT_LINES['/']={{P(0,0),P(2,4)}}
+FONT_LINES['(']={{P(1.5,4),P(0.5,2)},{P(0.5,2),P(1.5,0)}}
+FONT_LINES[')']={{P(0.5,4),P(1.5,2)},{P(1.5,2),P(0.5,0)}}
+
+-- Cyrillic (Русский)
+FONT_LINES['А'] = FONT_LINES['A']
+FONT_LINES['Б'] = {{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(0,2),P(2,2)},{P(2,2),P(2,0)},{P(2,0),P(0,0)}}
+FONT_LINES['В'] = FONT_LINES['B']
+FONT_LINES['Г'] = {{P(0,0),P(0,4)},{P(0,4),P(2,4)}}
+FONT_LINES['Д'] = {{P(0.5,0.5),P(0.5,4)},{P(0.5,4),P(1.5,4)},{P(1.5,4),P(1.5,0.5)},{P(0,0.5),P(2,0.5)},{P(0,0.5),P(0,0)},{P(2,0.5),P(2,0)}}
+FONT_LINES['Е'] = FONT_LINES['E']
+FONT_LINES['Ё'] = {{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(0,2),P(1.5,2)},{P(0,0),P(2,0)}, {P(0.5,4.5),P(0.5,4.6)}, {P(1.5,4.5),P(1.5,4.6)}}
+FONT_LINES['Ж'] = {{P(0,0),P(2,4)},{P(2,0),P(0,4)},{P(1,0),P(1,4)}}
+FONT_LINES['З'] = FONT_LINES['3']
+FONT_LINES['И'] = {{P(0,0),P(0,4)},{P(0,0),P(2,4)},{P(2,4),P(2,0)}}
+FONT_LINES['Й'] = {{P(0,0),P(0,4)},{P(0,0),P(2,4)},{P(2,4),P(2,0)},{P(0.5,4.5),P(1.5,4.2)}}
+FONT_LINES['К'] = FONT_LINES['K']
+FONT_LINES['Л'] = {{P(0,0),P(1,4)},{P(1,4),P(2,0)}}
+FONT_LINES['М'] = FONT_LINES['M']
+FONT_LINES['Н'] = FONT_LINES['H']
+FONT_LINES['О'] = FONT_LINES['O']
+FONT_LINES['П'] = {{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(2,4),P(2,0)}}
+FONT_LINES['Р'] = FONT_LINES['P']
+FONT_LINES['С'] = FONT_LINES['C']
+FONT_LINES['Т'] = FONT_LINES['T']
+FONT_LINES['У'] = {{P(0,4),P(1,2)},{P(2,4),P(0,0)}}
+FONT_LINES['Ф'] = {{P(1,0),P(1,4)},{P(0,3),P(2,3)},{P(2,3),P(2,1)},{P(2,1),P(0,1)},{P(0,1),P(0,3)}}
+FONT_LINES['Х'] = FONT_LINES['X']
+FONT_LINES['Ц'] = {{P(0,0),P(0,4)},{P(2,4),P(2,0)},{P(0,0),P(2,0)},{P(2,0),P(2.2,-0.5)}}
+FONT_LINES['Ч'] = {{P(0,4),P(0,2)},{P(0,2),P(2,2)},{P(2,2),P(2,0)},{P(2,2),P(2,4)}}
+FONT_LINES['Ш'] = {{P(0,4),P(0,0)},{P(0,0),P(2,0)},{P(2,0),P(2,4)},{P(1,0),P(1,4)}}
+FONT_LINES['Щ'] = {{P(0,4),P(0,0)},{P(0,0),P(2,0)},{P(2,0),P(2,4)},{P(1,0),P(1,4)},{P(2,0),P(2.2,-0.5)}}
+FONT_LINES['Ъ'] = {{P(0,4),P(1,4)},{P(1,4),P(1,0)},{P(1,0),P(2,0)},{P(2,0),P(2,2)},{P(2,2),P(1,2)}}
+FONT_LINES['Ы'] = {{P(0,4),P(0,0)},{P(0,0),P(1,0)},{P(1,0),P(1,2)},{P(1,2),P(0,2)},{P(1.5,0),P(1.5,4)}}
+FONT_LINES['Ь'] = {{P(0,4),P(0,0)},{P(0,0),P(1,0)},{P(1,0),P(1,2)},{P(1,2),P(0,2)}}
+FONT_LINES['Э'] = {{P(2,4),P(0,2)},{P(0,2),P(2,0)},{P(0,2),P(1.5,2)}}
+FONT_LINES['Ю'] = {{P(0,0),P(0,4)},{P(0,2),P(1,2)},{P(1,0),P(1,4)},{P(1,4),P(2,2)},{P(2,2),P(1,0)}}
+FONT_LINES['Я'] = {{P(0,0),P(1,2)},{P(1,2),P(0,4)},{P(0,4),P(2,4)},{P(2,4),P(2,0)}}
+
+-- Mapping fallback for unknowns
+setmetatable(FONT_LINES, {__index = function(t, k)
+	-- Automatic lowercase support (scale down uppercase)
+	local upper = k:upper()
+	if rawget(t, upper) then
+		return "LOWERCASE_FLAG" -- Signal to renderer to scale
+	end
+	return {{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(2,4),P(2,0)},{P(2,0),P(0,0)}} -- Box
+end})
+
 --// CALCULATE SPRAY (INTEGRATED MODULE) //--
 local function CalculateSpray(player, mouse)
 	local character = player.Character
@@ -136,30 +236,20 @@ local function CalculateSpray(player, mouse)
 		local localPoint = chalkZone.CFrame:PointToObjectSpace(position)
 		local size = chalkZone.Size / 2
 
-		-- Проверка границ зоны
 		if not (math.abs(localPoint.X) <= size.X and
 			math.abs(localPoint.Y) <= size.Y and
 			math.abs(localPoint.Z) <= size.Z) then
 			return nil
 		end
 
-		if part.Material ~= Enum.Material.Concrete then
-			return nil
-		end
+		if part.Material ~= Enum.Material.Concrete then return nil end
 
 		local upVector = normal
 		local rightVector
-
-		if math.abs(upVector.Y) > 0.99 then
-			rightVector = Vector3.new(1, 0, 0)
-		else
-			rightVector = Vector3.new(0, 1, 0):Cross(upVector).Unit
-		end
-
+		if math.abs(upVector.Y) > 0.99 then rightVector = Vector3.new(1, 0, 0)
+		else rightVector = Vector3.new(0, 1, 0):Cross(upVector).Unit end
 		local backVector = rightVector:Cross(upVector).Unit
-		local rotationCFrame = CFrame.fromMatrix(position, rightVector, upVector, backVector)
-
-		return rotationCFrame * CFrame.Angles(0, 0, math.rad(90))
+		return CFrame.fromMatrix(position, rightVector, upVector, backVector) * CFrame.Angles(0, 0, math.rad(90))
 	end
 	return nil
 end
@@ -179,7 +269,6 @@ local function LoadMain()
 	
 	MakeDraggable(main)
 	
-	-- Анимация
 	main.Size = UDim2.new(0, 100, 0, 100)
 	TweenService:Create(main, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 700, 0, 450)}):Play()
 
@@ -213,7 +302,7 @@ local function LoadMain()
 	
 	local subTitle = Instance.new("TextLabel")
 	subTitle.Name = "Dim"
-	subTitle.Text = "NEXUS V9 (FULL)"
+	subTitle.Text = "NEXUS V10"
 	subTitle.Font = Enum.Font.GothamBold
 	subTitle.TextSize = 14
 	subTitle.TextColor3 = currentTheme.TextDim
@@ -337,7 +426,6 @@ local function LoadMain()
 		return b
 	end
 	
-	--// TABS SETUP //--
 	local pMain = CreateTab("MAIN")
 	local pDraw = CreateTab("DRAWING")
 	local pBooth = CreateTab("BOOTH")
@@ -346,7 +434,7 @@ local function LoadMain()
 	local pSet = CreateTab("THEMES")
 	SwitchTab(pMain)
 	
-	--// MAIN TAB //--
+	-- MAIN
 	CreateBtn(pMain, "LOAD INFINITY YIELD", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source"))() end)
 	CreateBtn(pMain, "LOAD DEX EXPLORER", function() loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))() end)
 	CreateBtn(pMain, "GET FREE PUSH", function(b)
@@ -399,7 +487,7 @@ local function LoadMain()
 		end
 	end)
 	
-	--// BOOTH TAB //--
+	-- BOOTH
 	local rainbowBooth = false
 	local colorSpeed = CreateInput(pBooth, "Rainbow Speed (0.2)", "0.2")
 	CreateBtn(pBooth, "RAINBOW TEXT TOGGLE", function(b)
@@ -459,7 +547,7 @@ local function LoadMain()
 		end
 	end)
 	
-	--// DEVICES TAB //--
+	-- DEVICES
 	local devs = {"Phone", "Computer", "Console"}
 	for _, d in ipairs(devs) do
 		CreateBtn(pDev, "SET DEVICE TAG: "..d, function()
@@ -468,13 +556,12 @@ local function LoadMain()
 		end)
 	end
 	
-	--// DRAWING TAB (RESTORED + NEW LOGIC) //--
+	-- DRAWING (UPDATED)
 	local drawColor = Color3.new(1,1,1)
 	local isRainbowDraw = false
 	local isDrawing = false
 	local chalkEvent = ReplicatedStorage:WaitForChild("GameCore"):WaitForChild("Remotes"):WaitForChild("ChalkEvent")
 	
-	-- Palette
 	local palette = Instance.new("Frame", pDraw)
 	palette.Size = UDim2.new(0.98, 0, 0, 80)
 	palette.BackgroundTransparency = 1
@@ -495,8 +582,7 @@ local function LoadMain()
 		b.Text = isRainbowDraw and "RAINBOW DRAW: ON" or "RAINBOW DRAW: OFF"
 	end)
 	
-	-- NEW INTEGRATED MODULE LOGIC FOR DRAWING
-	CreateBtn(pDraw, "ENABLE DRAWING (MODULE FIX)", function(b)
+	CreateBtn(pDraw, "ENABLE DRAWING (ALL SURFACES)", function(b)
 		isDrawing = not isDrawing
 		b.BackgroundColor3 = isDrawing and currentTheme.Accent or currentTheme.Secondary
 	end)
@@ -510,7 +596,6 @@ local function LoadMain()
 		else task.spawn(function() for i = 1, #batch, MAX do local sub = {} for j = i, math.min(i+MAX-1, #batch) do table.insert(sub, batch[j]) end pcall(function() chalkEvent:FireServer(sub) end) task.wait(0.05) end end) end
 	end
 	
-	-- Old Ground Logic for Text
 	local function getGroundPos(startPos)
 		local params = RaycastParams.new()
 		params.FilterDescendantsInstances = {lp.Character, workspace:FindFirstChild("Art")}
@@ -531,33 +616,32 @@ local function LoadMain()
 			if pos then table.insert(Batch, {cframe = CFrame.lookAt(pos, pos+n)*CFrame.Angles(0, math.rad(90), 0), color = col}) end
 		end
 	end
-	local function P(x, z) return {x, z} end
-	local FONT_LINES = {} 
-	FONT_LINES['A']={{P(0,0),P(1,4)},{P(1,4),P(2,0)},{P(0.4,1.6),P(1.6,1.6)}}; FONT_LINES['B']={{P(0,0),P(0,4)},{P(0,4),P(1.5,3.5)},{P(1.5,3.5),P(0,2)},{P(0,2),P(1.8,1.5)},{P(1.8,1.5),P(0,0)}}
-	-- [Truncated for brevity, assuming standard font]
-	setmetatable(FONT_LINES, {__index = function() return {{P(0,0),P(0,4)},{P(0,4),P(2,4)},{P(2,4),P(2,0)},{P(2,0),P(0,0)}} end})
 	
 	CreateBtn(pDraw, "DRAW TEXT (GROUND ONLY)", function(b)
 		if not lp.Character or not lp.Character:FindFirstChild("HumanoidRootPart") then return end
 		if not lp.Character:FindFirstChildOfClass("Tool") then b.Text = "HOLD TOOL!"; task.wait(1); b.Text = "DRAW TEXT (GROUND ONLY)"; return end
-		
 		b.Text = "CALCULATING..."
-		local txt = textIn.Text:upper()
+		local rawTxt = textIn.Text
 		local sz = tonumber(sizeIn.Text) or 2
 		local batch = {}
 		local charSpacing = 2.5 * sz
-		local totalW = #txt * charSpacing
+		local totalW = #rawTxt * charSpacing
 		local offset = -totalW / 2
 		local root = lp.Character.HumanoidRootPart
 		local centerFrame = root.CFrame * CFrame.new(0, 0, -12)
 		local density = 0.5 * sz
-		for i=1, #txt do
-			local char = txt:sub(i,i)
-			local lines = FONT_LINES[char]
-			local col = isRainbowDraw and Color3.fromHSV((tick()%1 + i/#txt)%1, 1, 1) or drawColor
+		for i=1, #rawTxt do
+			local char = rawTxt:sub(i,i)
+			local data = FONT_LINES[char]
+			local isLower = (data == "LOWERCASE_FLAG")
+			local lines = isLower and FONT_LINES[char:upper()] or data
+			local scale = isLower and 0.7 or 1
+			local yOff = isLower and 1 or 0
+			
+			local col = isRainbowDraw and Color3.fromHSV((tick()%1 + i/#rawTxt)%1, 1, 1) or drawColor
 			for _, l in ipairs(lines) do
-				local sRel = Vector3.new(l[1][1]*density, 0, l[1][2]*density)
-				local eRel = Vector3.new(l[2][1]*density, 0, l[2][2]*density)
+				local sRel = Vector3.new(l[1][1]*density*scale, 0, (l[1][2]*scale + yOff)*density)
+				local eRel = Vector3.new(l[2][1]*density*scale, 0, (l[2][2]*scale + yOff)*density)
 				local offX = offset + (i-1)*charSpacing
 				interpolateGroundLine(batch, Vector3.new(offX + sRel.X, 0, -sRel.Z), Vector3.new(offX + eRel.X, 0, -eRel.Z), centerFrame, col, sz)
 			end
@@ -568,7 +652,6 @@ local function LoadMain()
 		b.Text = "DRAW TEXT (GROUND ONLY)"
 	end)
 	
-	-- MAIN DRAWING LOOP (MODULE LOGIC)
 	task.spawn(function()
 		while gui.Parent do
 			if isDrawing and UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
@@ -584,7 +667,6 @@ local function LoadMain()
 		end
 	end)
 	
-	--// LAG TAB //--
 	CreateBtn(pLag, "PUSH REQUEST SPAM", function()
 		local r = scanRemote("PushRequest")
 		if r then for i=1,50 do r:FireServer() end end
@@ -594,7 +676,6 @@ local function LoadMain()
 		if t then for i=1,40 do t.RemoteEvent:FireServer() end end
 	end)
 	
-	--// THEME TAB //--
 	for name, _ in pairs(themes) do CreateBtn(pSet, "APPLY: "..name:upper(), function() playClick(); UpdateTheme(name) end) end
 end
 
